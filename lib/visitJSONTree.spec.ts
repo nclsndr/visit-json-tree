@@ -156,13 +156,9 @@ describe("visitJSONTree", () => {
   });
   it("should visit an array of object", async () => {
     const acc: any[] = [];
-    await visitJSONTree(
-      [{ a: 1 }, { b: 2 }],
-      async (match) => {
-        acc.push(match);
-      },
-      []
-    );
+    await visitJSONTree([{ a: 1 }, { b: 2 }], async (match) => {
+      acc.push(match);
+    });
     expect(acc[0]).toStrictEqual({
       path: [],
       value: [{ a: 1 }, { b: 2 }],
@@ -197,9 +193,6 @@ describe("visitJSONTree", () => {
       { a: 1, b: 2, c: 3 },
       async (match) => {
         acc.push(match);
-        if (match.matchedPattern === "match") {
-          match.value;
-        }
       },
       [
         {
@@ -230,7 +223,6 @@ describe("visitJSONTree", () => {
       { a: 1, b: 2 },
       async (match) => {
         acc.push(match);
-        match.value;
       },
       [
         {
@@ -285,7 +277,6 @@ describe("visitJSONTree", () => {
       { a: 1, b: { c: "2" } },
       async (match) => {
         acc.push(match);
-        match.value;
       },
       [
         {
@@ -303,7 +294,7 @@ describe("visitJSONTree", () => {
             }
             return { hasMatched: true, payload: value, isFinalMatch: false };
           },
-        },
+        } as const,
         {
           name: "is number",
           match: async (value) => {
@@ -312,7 +303,7 @@ describe("visitJSONTree", () => {
             }
             return { hasMatched: true, payload: value, isFinalMatch: true };
           },
-        },
+        } as const,
         {
           name: "is object",
           match: async (value) => {
@@ -325,7 +316,7 @@ describe("visitJSONTree", () => {
             }
             return { hasMatched: true, payload: value, isFinalMatch: true };
           },
-        },
+        } as const,
       ]
     );
 
@@ -403,5 +394,9 @@ describe("visitJSONTree", () => {
     });
 
     expect(acc).toHaveLength(3);
+  });
+
+  it("should fail visiting a function", async () => {
+    await visitJSONTree({ a: true }, async (match) => {}, []);
   });
 });

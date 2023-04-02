@@ -33,7 +33,7 @@ export type Pattern<
 
 export type TreePath = (number | string)[];
 
-type ExecutePatternsResult =
+export type ExecutePatternsResult =
   | {
       type: "finalMatch";
     }
@@ -46,21 +46,23 @@ type ExecutePatternsResult =
 
 export async function* executePatterns<Patterns extends ReadonlyArray<Pattern>>(
   tree: JSONValue,
-  patterns: Patterns,
+  patterns: Patterns | undefined,
   path: TreePath = []
 ): AsyncGenerator<VisitorPayload, ExecutePatternsResult> {
-  for (const pattern of patterns) {
-    const matchResult = await pattern.match(tree);
-    if (matchResult.hasMatched) {
-      yield {
-        path,
-        value: matchResult.payload,
-        matchedPattern: pattern.name,
-      };
-      if (matchResult.isFinalMatch) {
-        return { type: "finalMatch" };
+  if (patterns) {
+    for (const pattern of patterns) {
+      const matchResult = await pattern.match(tree);
+      if (matchResult.hasMatched) {
+        yield {
+          path,
+          value: matchResult.payload,
+          matchedPattern: pattern.name,
+        };
+        if (matchResult.isFinalMatch) {
+          return { type: "finalMatch" };
+        }
+        return { type: "continue" };
       }
-      return { type: "continue" };
     }
   }
   return { type: "noMatch" };
@@ -68,10 +70,12 @@ export async function* executePatterns<Patterns extends ReadonlyArray<Pattern>>(
 
 export async function* visitNode<Patterns extends ReadonlyArray<Pattern>>(
   value: JSONValue,
-  patterns: Patterns,
+  patterns: Patterns | undefined,
   path: TreePath,
   executePatternsParentResult: ExecutePatternsResult
 ): AsyncGenerator<VisitorPayload> {
+  matchIsJSONValue(value, path);
+
   if (Array.isArray(value) || matchIsObjectLiteral(value)) {
     yield* visitTree(value, patterns, path);
   } else {
@@ -94,7 +98,7 @@ export async function* visitNode<Patterns extends ReadonlyArray<Pattern>>(
 
 export async function* visitTree<Patterns extends ReadonlyArray<Pattern>>(
   tree: JSONValue,
-  patterns: Patterns,
+  patterns: Patterns | undefined,
   path: TreePath = []
 ): AsyncGenerator<VisitorPayload> {
   matchIsJSONValue(tree, path);

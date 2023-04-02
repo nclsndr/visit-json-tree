@@ -1,10 +1,17 @@
 import { visitTree } from "./visit.js";
 
+export const makeVisitGenerator = visitTree;
+
 export { visitJSONTree } from "./visitJSONTree.js";
+export type { DistributedVisitorPayload } from "./visitJSONTree.js";
 
-const makeVisitGenerator = visitTree;
-
-export type { Pattern, TreePath, VisitorPayload } from "./visit.js";
+export type {
+  Pattern,
+  TreePath,
+  VisitorPayload,
+  ExecutePatternsResult,
+  MatchResult,
+} from "./visit.js";
 export type {
   JSONValue,
   JSONPrimitiveValue,
