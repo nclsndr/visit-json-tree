@@ -22,8 +22,11 @@ declare async function visitJSONTree(
   patterns: {
     name: string;
     match: (value: JSONValue) => Promise<{
-      matched: JSONValue;
-      isFinalMatch: boolean;
+        hasMatched: true;
+        payload: JSONValue;
+        isFinalMatch: boolean;
+      } | {
+        hasMatched: false;
     }>;
   }[]
 ): Promise<void>
@@ -50,21 +53,21 @@ await visitJSONTree(
           typeof value !== "object" ||
           Array.isArray(value)
         ) {
-          throw new Error("not an object");
+          return { hasMatched: false };
         }
         if (!value.a) {
-          throw new Error("not an object containing a");
+          return { hasMatched: false };
         }
-        return { matched: value, isFinalMatch: false };
+        return { hasMatched: true, payload: value, isFinalMatch: false };
       },
     },
     {
       name: "is number",
       match: async (value) => {
         if (typeof value !== "number") {
-          throw new Error("not a number");
+          return { hasMatched: false };
         }
-        return { matched: value, isFinalMatch: true };
+        return { hasMatched: true, payload: value, isFinalMatch: true };
       },
     },
     {
@@ -75,9 +78,9 @@ await visitJSONTree(
           typeof value !== "object" ||
           Array.isArray(value)
         ) {
-          throw new Error("not an object");
+          return { hasMatched: false };
         }
-        return { matched: value, isFinalMatch: true };
+        return { hasMatched: true, payload: value, isFinalMatch: true };
       },
     },
   ]

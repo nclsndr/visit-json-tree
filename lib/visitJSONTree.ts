@@ -1,11 +1,18 @@
 import { JSONValue } from "./utils/JSONTypes.js";
-import { Pattern, VisitorPayload, visitTree } from "./visit.js";
+import { MatchResult, Pattern, VisitorPayload, visitTree } from "./visit.js";
 
-export async function visitJSONTree<
-  const Patterns extends ReadonlyArray<Readonly<Pattern>>
->(
+export type DistributedVisitorPayload<P extends Pattern> = P extends {
+  name: infer Name extends string | symbol;
+  match: (...args: any[]) => Promise<infer MR extends MatchResult>;
+}
+  ? VisitorPayload<Name, Extract<MR, { hasMatched: true }>["payload"]>
+  : never;
+
+export async function visitJSONTree<Patterns extends ReadonlyArray<Pattern>>(
   tree: unknown,
-  callback: (payload: VisitorPayload<Patterns[number]>) => Promise<void>,
+  callback: (
+    payload: DistributedVisitorPayload<Patterns[number]>
+  ) => Promise<void>,
   patterns: Patterns
 ) {
   const generator = visitTree(tree as JSONValue, patterns);
@@ -14,6 +21,6 @@ export async function visitJSONTree<
     if (done) {
       break;
     }
-    await callback(value as VisitorPayload<Patterns[number]>);
+    await callback(value as DistributedVisitorPayload<Patterns[number]>);
   }
 }

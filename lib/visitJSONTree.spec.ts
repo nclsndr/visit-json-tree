@@ -197,16 +197,20 @@ describe("visitJSONTree", () => {
       { a: 1, b: 2, c: 3 },
       async (match) => {
         acc.push(match);
+        if (match.matchedPattern === "match") {
+          match.value;
+        }
       },
       [
         {
           name: "match",
           match: async (value) => {
             if (value === null || typeof value !== "object") {
-              throw new Error("not an object");
+              return { hasMatched: false };
             }
             return {
-              matched: Object.keys(value),
+              hasMatched: true,
+              payload: Object.keys(value),
               isFinalMatch: true,
             };
           },
@@ -237,10 +241,11 @@ describe("visitJSONTree", () => {
               typeof value !== "object" ||
               Array.isArray(value)
             ) {
-              throw new Error("not an object");
+              return { hasMatched: false };
             }
             return {
-              matched: value,
+              hasMatched: true,
+              payload: value,
               isFinalMatch: false,
             };
           },
@@ -249,7 +254,8 @@ describe("visitJSONTree", () => {
           name: "any",
           match: async (value) => {
             return {
-              matched: value,
+              hasMatched: true,
+              payload: value,
               isFinalMatch: false,
             };
           },
@@ -290,21 +296,21 @@ describe("visitJSONTree", () => {
               typeof value !== "object" ||
               Array.isArray(value)
             ) {
-              throw new Error("not an object");
+              return { hasMatched: false };
             }
             if (!value.a) {
-              throw new Error("not an object containing a");
+              return { hasMatched: false };
             }
-            return { matched: value, isFinalMatch: false };
+            return { hasMatched: true, payload: value, isFinalMatch: false };
           },
         },
         {
           name: "is number",
           match: async (value) => {
             if (typeof value !== "number") {
-              throw new Error("not a number");
+              return { hasMatched: false };
             }
-            return { matched: value, isFinalMatch: true };
+            return { hasMatched: true, payload: value, isFinalMatch: true };
           },
         },
         {
@@ -315,9 +321,9 @@ describe("visitJSONTree", () => {
               typeof value !== "object" ||
               Array.isArray(value)
             ) {
-              throw new Error("not an object");
+              return { hasMatched: false };
             }
-            return { matched: value, isFinalMatch: true };
+            return { hasMatched: true, payload: value, isFinalMatch: true };
           },
         },
       ]
@@ -357,24 +363,24 @@ describe("visitJSONTree", () => {
               typeof value !== "object" ||
               Array.isArray(value)
             ) {
-              throw new Error("not an object");
+              return { hasMatched: false };
             }
-            return { matched: value, isFinalMatch: false };
+            return { hasMatched: true, payload: value, isFinalMatch: false };
           },
         },
         {
           name: "is number",
           match: async (value) => {
             if (typeof value !== "number") {
-              throw new Error("not a number");
+              return { hasMatched: false };
             }
-            return { matched: value, isFinalMatch: true };
+            return { hasMatched: true, payload: value, isFinalMatch: true };
           },
         },
         {
           name: "is anything",
           match: async (value) => {
-            return { matched: null, isFinalMatch: true };
+            return { hasMatched: true, payload: null, isFinalMatch: true };
           },
         },
       ]

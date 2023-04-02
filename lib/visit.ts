@@ -4,19 +4,24 @@ import { matchIsJSONValue } from "./utils/matchIsJSONValue.js";
 
 export const DEFAULT_MATCHER = Symbol("defaultMatcher");
 
-export type VisitorPayload<P extends Pattern> = {
+export type VisitorPayload<
+  MatchedPattern extends string | Symbol = string | Symbol,
+  Value = JSONValue
+> = {
   path: TreePath;
-  value: Awaited<ReturnType<P["match"]>>["matched"];
-  matchedPattern: P["name"] | typeof DEFAULT_MATCHER;
+  matchedPattern: MatchedPattern;
+  value: Value;
 };
 
-export type MatchResult<
-  Value = JSONValue,
-  Continue extends boolean = boolean
-> = {
-  matched: Value;
-  isFinalMatch: boolean;
-};
+export type MatchResult<Value = JSONValue> =
+  | {
+      hasMatched: true;
+      payload: Value;
+      isFinalMatch: boolean;
+    }
+  | {
+      hasMatched: false;
+    };
 
 export type Pattern<
   Name extends string = string,
@@ -43,20 +48,20 @@ export async function* executePatterns<Patterns extends ReadonlyArray<Pattern>>(
   tree: JSONValue,
   patterns: Patterns,
   path: TreePath = []
-): AsyncGenerator<VisitorPayload<Patterns[number]>, ExecutePatternsResult> {
+): AsyncGenerator<VisitorPayload, ExecutePatternsResult> {
   for (const pattern of patterns) {
-    try {
-      const { matched, isFinalMatch } = await pattern.match(tree);
+    const matchResult = await pattern.match(tree);
+    if (matchResult.hasMatched) {
       yield {
         path,
-        value: matched,
+        value: matchResult.payload,
         matchedPattern: pattern.name,
       };
-      if (isFinalMatch) {
+      if (matchResult.isFinalMatch) {
         return { type: "finalMatch" };
       }
       return { type: "continue" };
-    } catch (error) {}
+    }
   }
   return { type: "noMatch" };
 }
@@ -66,7 +71,7 @@ export async function* visitNode<Patterns extends ReadonlyArray<Pattern>>(
   patterns: Patterns,
   path: TreePath,
   executePatternsParentResult: ExecutePatternsResult
-): AsyncGenerator<VisitorPayload<Patterns[number]>> {
+): AsyncGenerator<VisitorPayload> {
   if (Array.isArray(value) || matchIsObjectLiteral(value)) {
     yield* visitTree(value, patterns, path);
   } else {
@@ -91,7 +96,7 @@ export async function* visitTree<Patterns extends ReadonlyArray<Pattern>>(
   tree: JSONValue,
   patterns: Patterns,
   path: TreePath = []
-): AsyncGenerator<VisitorPayload<Patterns[number]>> {
+): AsyncGenerator<VisitorPayload> {
   matchIsJSONValue(tree, path);
 
   const executePatternsResult = yield* executePatterns(tree, patterns, path);
