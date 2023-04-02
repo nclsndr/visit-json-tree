@@ -6,6 +6,7 @@
   "keywords": [
     "json",
     "visit",
+    "traverse",
     "generator",
     "async",
     "iterator",
@@ -13,6 +14,11 @@
   ],
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nclsndr/visit-json-tree.git"
+  },
+  "homepage": "https://github.com/nclsndr/visit-json-tree#readme",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

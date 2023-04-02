@@ -1,8 +1,9 @@
+import type { TreePath } from "../visit.js";
 import { JSONPrimitiveValue } from "./JSONTypes.js";
 
 export function matchIsPrimitiveValue(
   value: unknown,
-  path: (number | string)[]
+  path: TreePath
 ): value is JSONPrimitiveValue {
   const isLiteralValue =
     typeof value === "string" ||

@@ -2,7 +2,7 @@ import { JSONValue } from "./utils/JSONTypes.js";
 import { Pattern, VisitorPayload, visitTree } from "./visit.js";
 
 export async function visitJSONTree<
-  Patterns extends ReadonlyArray<Readonly<Pattern>>
+  const Patterns extends ReadonlyArray<Readonly<Pattern>>
 >(
   tree: unknown,
   callback: (payload: VisitorPayload<Patterns[number]>) => Promise<void>,
