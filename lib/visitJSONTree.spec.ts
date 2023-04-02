@@ -169,9 +169,11 @@ describe("visitJSONTree", () => {
             if (value === null || typeof value !== "object") {
               throw new Error("not an object");
             }
-            return Object.keys(value);
+            return {
+              matched: Object.keys(value),
+              isFinalMatch: true,
+            };
           },
-          isLeaf: true,
         } as const,
       ]
     );
@@ -197,9 +199,11 @@ describe("visitJSONTree", () => {
             if (value === null || typeof value !== "object") {
               throw new Error("not an object");
             }
-            return value;
+            return {
+              matched: value,
+              isFinalMatch: false,
+            };
           },
-          isLeaf: false,
         },
       ]
     );
@@ -239,9 +243,8 @@ describe("visitJSONTree", () => {
             ) {
               throw new Error("not an object");
             }
-            return value;
+            return { matched: value, isFinalMatch: false };
           },
-          isLeaf: false,
         },
         {
           name: "is number",
@@ -249,16 +252,14 @@ describe("visitJSONTree", () => {
             if (typeof value !== "number") {
               throw new Error("not a number");
             }
-            return value;
+            return { matched: value, isFinalMatch: true };
           },
-          isLeaf: true,
         },
         {
           name: "is anything",
           match: async (value) => {
-            return null;
+            return { matched: null, isFinalMatch: true };
           },
-          isLeaf: true,
         },
       ]
     );

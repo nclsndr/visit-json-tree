@@ -6,18 +6,24 @@ export const LITERAL = Symbol("literal");
 
 export type VisitorPayload<P extends Pattern> = {
   path: TreePath;
-  value: Awaited<ReturnType<P["match"]>>;
+  value: Awaited<ReturnType<P["match"]>>["matched"];
   matchedPattern: P["name"] | typeof LITERAL;
+};
+
+export type MatchResult<
+  Value = JSONValue,
+  Continue extends boolean = boolean
+> = {
+  matched: Value;
+  isFinalMatch: boolean;
 };
 
 export type Pattern<
   Name extends string = string,
-  MatchReturn extends any = JSONValue,
-  IsLeaf extends boolean = boolean
+  MatchReturn extends MatchResult = MatchResult
 > = {
   name: Name;
-  match: (value: JSONValue) => Promise<MatchReturn>;
-  isLeaf: IsLeaf;
+  match: (value: JSONValue) => Promise<MatchResult>;
 };
 
 export type TreePath = (number | string)[];
@@ -29,13 +35,13 @@ export async function* executePatterns<Patterns extends ReadonlyArray<Pattern>>(
 ): AsyncGenerator<VisitorPayload<Patterns[number]>, boolean> {
   for (const pattern of patterns) {
     try {
-      const result = await pattern.match(tree);
+      const { matched, isFinalMatch } = await pattern.match(tree);
       yield {
         path,
-        value: result,
+        value: matched,
         matchedPattern: pattern.name,
       } as any;
-      if (pattern.isLeaf) {
+      if (isFinalMatch) {
         return true;
       }
       break;
