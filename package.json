@@ -1,7 +1,7 @@
 {
   "name": "@nclsndr/visit-json-tree",
-  "version": "1.0.0",
-  "description": "Asynchronously visit a JSON tree using generators",
+  "version": "0.0.1",
+  "description": "Asynchronously visit a JSON tree based on pattern matching",
   "author": "nclsndr<nclsndr1@gmail.com>",
   "keywords": [
     "json",
@@ -9,7 +9,9 @@
     "traverse",
     "generator",
     "async",
+    "async generator",
     "iterator",
+    "pattern matching",
     "typescript"
   ],
   "license": "MIT",
