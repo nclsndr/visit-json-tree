@@ -1,8 +1,34 @@
 # Visit JSON tree
 
+Asynchronously visit a JSON tree based on pattern matching
+
 ### Abstract
 
-This library aims to provide utility function to visit a JSON tree based on declared patterns.
+This library aims to provide utility functions to visit a JSON tree based on declared patterns, leveraging the [async generator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator) API.
+
+> ⚠️ This is an experimental library – the API will likely change in the future.
+
+## Usage
+
+### Use cases
+
+- **JSON tree traversal**: you can use this library to traverse a JSON tree. The library will visit the tree and call the callback for each match (or entry if no patterns provided). You can then use the callback to accumulate the match.
+
+- **JSON tree transformation**: you can use this library to transform a JSON tree. The library will visit the tree and call the callback for each match. You can then use the callback to transform and accumulate the match.
+
+- **JSON Schema validation**: you can use this library to validate a JSON tree against a JSON schema. The library will visit the tree and call the callback for each match. You can then use the callback to validate the match against the schema.
+
+### Installation
+
+via npm
+```bash
+npm install @nclsndr/visit-json-tree
+```
+via yarn
+```bash
+yarn add @nclsndr/visit-json-tree
+```
+
 
 ## API
 
@@ -17,7 +43,7 @@ declare async function visitJSONTree(
   callback: (payload: {
     path: string[];
     value: JSONValue; // inferred from the match functions
-    matchedPattern: string; // defaults to typeof LITERAL
+    matchedPattern: string | Symbol; // defaults to typeof LITERAL
   }) => Promise<void>,
   patterns: {
     name: string;
@@ -35,16 +61,16 @@ declare async function visitJSONTree(
 Example:
 
 ```typescript
-import { visitJSONTree } from '@nclsndr/json-tree-visitor'
+const givenTree = { a: 1, b: { c: "2" } }
 
 const acc: any[] = [];
 await visitJSONTree(
-  { a: 1, b: { c: "2" } },
-  async (match) => {
+  givenTree,
+  async (match) => { // the callback is called for each match
     acc.push(match);
     match.value;
   },
-  [
+  [ // the patterns are used to match against each structure of the tree
     {
       name: "is object with a",
       match: async (value) => {
@@ -102,4 +128,20 @@ expect(acc[2]).toStrictEqual({
   matchedPattern: "is object",
 });
 expect(acc).toHaveLength(3);
+```
+
+### makeVisitTreeGenerator
+
+signature:
+
+```typescript
+declare async function* makeVisitTreeGenerator(
+  tree: JSONValue,
+  patterns: Pattern[] | undefined,
+  path: TreePath = []
+): AsyncGenerator<{
+  path: TreePath;
+  matchedPattern: string | Symbol;
+  value: Value;
+}>
 ```
