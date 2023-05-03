@@ -6,14 +6,14 @@ export const DEFAULT_MATCHER = Symbol("defaultMatcher");
 
 export type VisitorPayload<
   MatchedPattern extends string | Symbol = string | Symbol,
-  Value = JSONValue
+  Value = unknown
 > = {
   path: TreePath;
   matchedPattern: MatchedPattern;
   value: Value;
 };
 
-export type MatchResult<Value = JSONValue> =
+export type MatchResult<Value = unknown> =
   | {
       hasMatched: true;
       payload: Value;
@@ -21,6 +21,8 @@ export type MatchResult<Value = JSONValue> =
     }
   | {
       hasMatched: false;
+      payload?: undefined;
+      isFinalMatch?: undefined;
     };
 
 export type Pattern<
@@ -28,7 +30,7 @@ export type Pattern<
   MatchReturn extends MatchResult = MatchResult
 > = {
   name: Name;
-  match: (value: JSONValue) => Promise<MatchResult>;
+  match: (value: JSONValue, path: TreePath) => Promise<MatchResult>;
 };
 
 export type TreePath = (number | string)[];
@@ -36,12 +38,17 @@ export type TreePath = (number | string)[];
 export type ExecutePatternsResult =
   | {
       type: "finalMatch";
+      patternName: string;
     }
   | {
       type: "noMatch";
     }
   | {
       type: "continue";
+      patternName: string;
+    }
+  | {
+      type: "noPatterns";
     };
 
 export async function* executePatterns<Patterns extends ReadonlyArray<Pattern>>(
@@ -49,9 +56,9 @@ export async function* executePatterns<Patterns extends ReadonlyArray<Pattern>>(
   patterns: Patterns | undefined,
   path: TreePath = []
 ): AsyncGenerator<VisitorPayload, ExecutePatternsResult> {
-  if (patterns) {
+  if (patterns && patterns.length > 0) {
     for (const pattern of patterns) {
-      const matchResult = await pattern.match(tree);
+      const matchResult = await pattern.match(tree, path);
       if (matchResult.hasMatched) {
         yield {
           path,
@@ -59,13 +66,14 @@ export async function* executePatterns<Patterns extends ReadonlyArray<Pattern>>(
           matchedPattern: pattern.name,
         };
         if (matchResult.isFinalMatch) {
-          return { type: "finalMatch" };
+          return { type: "finalMatch", patternName: pattern.name };
         }
-        return { type: "continue" };
+        return { type: "continue", patternName: pattern.name };
       }
     }
+    return { type: "noMatch" };
   }
-  return { type: "noMatch" };
+  return { type: "noPatterns" };
 }
 
 export async function* visitNode<Patterns extends ReadonlyArray<Pattern>>(
@@ -76,16 +84,16 @@ export async function* visitNode<Patterns extends ReadonlyArray<Pattern>>(
 ): AsyncGenerator<VisitorPayload> {
   matchIsJSONValue(value, path);
 
-  if (Array.isArray(value) || matchIsObjectLiteral(value)) {
-    yield* visitTree(value, patterns, path);
-  } else {
-    if (executePatternsParentResult.type !== "finalMatch") {
+  if (executePatternsParentResult.type !== "finalMatch") {
+    if (Array.isArray(value) || matchIsObjectLiteral(value)) {
+      yield* visitTree(value, patterns, path);
+    } else {
       const executePatternsResult = yield* executePatterns(
         value,
         patterns,
         path
       );
-      if (executePatternsResult.type === "noMatch") {
+      if (executePatternsResult.type === "noPatterns") {
         yield {
           path: path,
           value,
@@ -105,7 +113,7 @@ export async function* visitTree<Patterns extends ReadonlyArray<Pattern>>(
 
   const executePatternsResult = yield* executePatterns(tree, patterns, path);
 
-  if (executePatternsResult.type === "noMatch") {
+  if (executePatternsResult.type === "noPatterns") {
     yield {
       path,
       value: tree,
