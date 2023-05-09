@@ -38,7 +38,7 @@ Signature:
 
 ```typescript
 
-declare async function visitJSONTree(
+async function visitJSONTree(
   tree: unknown,
   callback: (payload: {
     path: string[];
@@ -61,8 +61,8 @@ declare async function visitJSONTree(
 Example:
 
 ```typescript
-const givenTree = { a: 1, b: { c: "2" } }
 
+const givenTree = { a: 1, b: { c: "2" } }
 const acc: any[] = [];
 await visitJSONTree(
   givenTree,

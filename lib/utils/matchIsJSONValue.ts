@@ -1,4 +1,4 @@
-import type { TreePath } from "../visit.js";
+import type { TreePath } from "../definitions.js";
 import { JSONValue } from "./JSONTypes.js";
 import { matchIsPrimitiveValue } from "./matchIsPrimitiveValue.js";
 import { matchIsObjectLiteral } from "./matchIsObjectLiteral.js";

@@ -31,7 +31,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "test": "vitest"
+    "test": "vitest",
+    "pack:dry-run": "npm pack --dry-run"
   },
   "devDependencies": {
     "@vitest/coverage-c8": "^0.29.8",

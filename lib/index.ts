@@ -1,6 +1,6 @@
-import { visitTree } from "./visit.js";
+import { visitTree } from "./visitTree.js";
 
-export const makeVisitGenerator = visitTree;
+export const makeVisitTreeGenerator = visitTree;
 
 export { visitJSONTree } from "./visitJSONTree.js";
 export type { DistributedVisitorPayload } from "./visitJSONTree.js";
@@ -9,12 +9,12 @@ export type {
   Pattern,
   TreePath,
   VisitorPayload,
-  ExecutePatternsResult,
   MatchResult,
-} from "./visit.js";
+} from "./definitions.js";
 export type {
   JSONValue,
   JSONPrimitiveValue,
   JSONArray,
   JSONObject,
 } from "./utils/JSONTypes.js";
+export { ExecutePatternsResult } from "./executePatterns.js";

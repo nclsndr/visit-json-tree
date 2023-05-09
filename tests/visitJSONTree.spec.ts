@@ -1,9 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { DEFAULT_MATCHER } from "./visit.js";
 
-import { visitJSONTree } from "./visitJSONTree.js";
+import { DEFAULT_MATCHER } from "../lib/definitions.js";
 
-describe("visitJSONTree", () => {
+import { visitJSONTree } from "../lib/visitJSONTree.js";
+import { generateJSONFixture } from "./_utils/generateJSONFixture.js";
+
+describe.concurrent("visitJSONTree", () => {
   it("should visit a string", async () => {
     await visitJSONTree("hello", async (match) => {
       expect(match).toStrictEqual({
@@ -508,5 +510,20 @@ describe("visitJSONTree", () => {
     ).rejects.toThrow(
       'Value of type "function" at path "a" is not a JSON literal value'
     );
+  });
+});
+
+describe("stress ", () => {
+  it("should visit a large object", async () => {
+    const tree = generateJSONFixture(5, 3);
+
+    const start = Date.now();
+
+    await visitJSONTree(tree, async (value) => {});
+
+    const end = Date.now();
+    const elapsed = end - start;
+
+    expect(elapsed).toBeLessThan(300);
   });
 });

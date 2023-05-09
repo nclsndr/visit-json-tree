@@ -4,8 +4,8 @@ import {
   MatchResult,
   Pattern,
   VisitorPayload,
-  visitTree,
-} from "./visit.js";
+} from "./definitions.js";
+import { visitTree } from "./visitTree.js";
 
 export type DistributedVisitorPayload<P extends Pattern> = P extends {
   name: infer Name extends string | symbol;
